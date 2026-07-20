@@ -45,11 +45,13 @@ npm run dev
 
 
 
+## เชื่อมต่อ Supabase (บันทึกข้อมูลถาวร)
+
 โปรเจกต์นี้ต่อกับ Supabase ไว้แล้วในโค้ด (ดู `lib/supabaseClient.js`)
 ถ้าไม่ตั้งค่า Environment Variables ไว้ แดชบอร์ดจะทำงานแบบ "โหมดออฟไลน์" อัตโนมัติ
 (ข้อมูลอยู่แค่ในเบราว์เซอร์ รีเฟรชแล้วหาย) — พอตั้งค่าตามด้านล่างแล้ว จะสลับไปบันทึกลง Supabase จริงทันที
 
-1. สร้างตาราง `videos`, `products`, `sponsors`, `calendar` ใน Supabase (รัน SQL ที่ให้ไว้ใน SQL Editor)
+1. สร้างตาราง `videos`, `products`, `sponsors`, `calendar`, `live_stats` ใน Supabase (รัน SQL ที่ให้ไว้ใน SQL Editor — ดูตาราง `live_stats` เพิ่มเติมด้านล่าง)
 2. ไปที่โปรเจกต์บน Vercel → Settings → Environment Variables ใส่:
    - `NEXT_PUBLIC_SUPABASE_URL` = Project URL ของ Supabase (ไม่ต้องมี `/rest/v1/` ต่อท้าย)
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = Publishable key (ขึ้นต้นด้วย `sb_publishable_...`)
@@ -57,3 +59,23 @@ npm run dev
 
 เมื่อเชื่อมสำเร็จ จะเห็นป้าย "เชื่อมฐานข้อมูลแล้ว" มุมขวาบนของแดชบอร์ด และข้อมูลที่เพิ่ม/ลบทุกหน้า
 (คลิปวิดีโอ, สินค้า, สปอนเซอร์, ปฏิทิน) จะบันทึกถาวร เห็นเหมือนกันทุกเครื่องที่เข้าเว็บนี้
+
+## ตาราง live_stats (สำหรับหน้า "ไลฟ์")
+
+รันเพิ่มใน SQL Editor ของ Supabase:
+
+```sql
+create table live_stats (
+  id bigint primary key,
+  sessions int default 0,
+  sales numeric default 0,
+  avg_viewers int default 0,
+  peak_viewers int default 0
+);
+
+alter table live_stats enable row level security;
+create policy "allow all live_stats" on live_stats for all using (true) with check (true);
+```
+
+หน้า "ไลฟ์" มีปุ่ม "แก้ไขตัวเลข" ให้กรอกเองได้เลยในเว็บ (TikTok ยังไม่มี API สาธารณะให้ดึงข้อมูลไลฟ์อัตโนมัติ)
+
